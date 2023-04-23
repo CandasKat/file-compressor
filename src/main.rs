@@ -7,11 +7,20 @@ use std::time::Instant;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-
+use std::path::Path;
+use std::ffi::OsStr;
+use std::ffi::OsString;
 
 fn compress(input_path: &str, output_path: &str) {
     let mut input = BufReader::new(File::open(input_path).unwrap());
-    let output = File::create(output_path).unwrap();
+
+    let output_file_path = Path::new(output_path);
+    let input_file_path = Path::new(input_path);
+    let input_file_name = input_file_path.file_name().unwrap();
+    let gzipped_file_name = OsString::from(input_file_name).to_string_lossy().into_owned() + ".gz";
+    let gzipped_file_path = output_file_path.with_file_name(gzipped_file_name);
+
+    let output = File::create(gzipped_file_path).unwrap();
     let mut encoder = GzEncoder::new(output, Compression::default());
     let start = Instant::now();
     copy(&mut input, &mut encoder).unwrap();
